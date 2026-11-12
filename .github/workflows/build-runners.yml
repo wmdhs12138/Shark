@@ -92,7 +92,8 @@ jobs:
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --install "platforms;android-37" "build-tools;37.0.0"
+          # Match compileSdk release(37) with minorApiLevel = 0.
+          "$SDKMANAGER" --install "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Assemble debug APK
         working-directory: app
@@ -104,6 +105,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shark-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
