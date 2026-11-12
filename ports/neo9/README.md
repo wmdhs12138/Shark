@@ -1,6 +1,6 @@
 # iQOO Neo9（PD2338）5.15.197 适配
 
-**状态：已加入 `libk515197` 入口；常量与本机只读 probe 已核对。5.15 fake-cred 顺序已按 Timer 修正，等待 CI 重编和干净开机复测。**
+**状态：已加入 `libk515197` 入口；常量与本机只读 probe 已核对。5.15 fake-cred 顺序和触发线程已按 Timer 修正，等待 CI 重编和干净开机复测。**
 
 ## 本机信息
 
@@ -66,6 +66,12 @@
 的 `cred_off=node_off+0x18` 一致。这样不需要再做 `fake_uid` / `fake_ids`，
 而是在 fake cred 安装前先清 `thread_info.flags`、`seccomp.mode`、SELinux 和
 vivo `sys_exit` tracepoint，最后安装 fake cred，写完立即唤醒子进程。
+
+5.15 的 UAF 触发也改成 Timer 的形态：先创建 2048 个 `CLOCK_MONOTONIC`
+填充 timer，再 30 个，然后创建并 arm 一个 `CLOCK_THREAD_CPUTIME_ID` victim，
+最后再补 64 个填充 timer；同时启动 7 个 per-CPU killer 和一个 crasher。
+`fake_cred` / SELinux 写完成后会分别用 `/proc/<pid>/status` 和
+`/sys/fs/selinux/enforce` 校验，校验不通过就重试，而不是只看 `hit=1`。
 
 其他布局：
 
