@@ -62,6 +62,7 @@ SukiSU Ultra 或 FinaSU 的 root 环境。
 | OPPO K13 Turbo Pro（PLE110） | ColorOS 17 | `6.6.118-android15-8-g9bc34d5b0c79-abogki537459655-4k` |
 | Realme Neo8（RMX8899） | ColorOS 16/17 | `6.12.38-android16-5-g844001fb8721-ab14552068-4k`<br>`6.12.69-android16-6-g242e1a07f878-ab15865446-4k`<br>`6.12.69-android16-6-g5fd39602326e-ab16372235-4k` |
 | vivo / iQOO 机型 | OriginOS 6/7 | `6.12.58-android16-6-g690108013dcc-abogki576129896-4k`<br>`6.12.58-android16-6-g0a092cc0037a-abogki521987229-4k`<br>`6.12.58-android16-6-gdd6fd5c98918-abogki543627742-4k`<br>`6.12.23-android16-5-g41f4cb1fa7c7-abogki465038634-4k`<br>`6.6.127-android15-8-gd489d4ad2a70-abogki567717946-4k` |
+| iQOO Neo9（PD2338） | OriginOS 6 / Android 16 | `5.15.197-g708015331567-dirty` |
 
 ## 支持的管理器
 
@@ -73,7 +74,7 @@ KernelSU、KernelSU-Next、BakaSU、SukiSU Ultra、FinaSU 五家。
 ## 能做什么
 
 - **一键临时 Root**：打开 App 后不需要手动选漏洞，它会根据 `uname -r`
-  自动匹配 6.18.21 / 6.12.69 / 6.12.38 / 6.12.58 / 6.12.23 / 6.6.118 / 6.6.127 七条链。点一次「一键越狱」即可完成提权、
+  自动匹配 5.15.197 / 6.18.21 / 6.12.69 / 6.12.38 / 6.12.58 / 6.12.23 / 6.6.118 / 6.6.127 八条链。点一次「一键越狱」即可完成提权、
   `ksud late-load`、模块安装和管理器拉起；临时 Root 在重启后消失，下次
   开机重新执行即可。
 - **五家管理器可选**：ROOT 管理器下拉直接选择 KernelSU、KernelSU-Next、
@@ -144,6 +145,7 @@ Shark/
 │   │   ├── libk61223.so         6.12.23 runner
 │   │   ├── libk66118.so         6.6.118 runner
 │   │   ├── libk66127.so         6.6.127 runner
+│   │   ├── libk515197.so        5.15.197 runner（iQOO Neo9）
 │   │   ├── libksud_universal.so 双 KMI 通用 loader
 │   │   ├── libsusfs_guard_lkm.so
 │   │   ├── libsusfs_guard_lkm_612.so
@@ -152,7 +154,7 @@ Shark/
 │   └── gradle/、keystore/
 ├── exploit/
 │   ├── rust-k61821/             6.18.21 Rust runner
-│   ├── rust-kplant/             6.12 / 6.6 Rust runner（feature 选 K 源文件）
+│   ├── rust-kplant/             5.15 / 6.12 / 6.6 Rust runner（feature 选 K 源文件）
 │   └── src/                     plant_core.inc + K<版本>_plant.c（每内核一份）
 ├── lkm/
 │   ├── susfs4ksu-lkm/           SUSFS guard 源码
@@ -162,6 +164,7 @@ Shark/
 ├── ports/v2505a/                V2505A 说明与验证记录
 ├── ports/coloros-61269/         6.12.69 双 OTA 构建说明与恢复工具
 ├── ports/pkj110-66118/          PKJ110 6.6.118 说明与验证记录
+├── ports/neo9/                  iQOO Neo9 5.15.197 说明与只读核对
 ├── ports/pd2454-66127/          vivo 6.6.127 说明与验证记录
 ├── third_party/                 第三方许可与材料
 ├── NOTICE / LICENSE
@@ -176,6 +179,7 @@ Shark/
   `ksud late-load` 与收尾。
 - `lkm/`：SUSFS guard 和 Hybrid Mount VFS provider 的源码与构建脚本。
 - `ports/v2505a/`：V2505A 分支的说明、常量和验证记录。
+- `ports/neo9/`：iQOO Neo9 5.15.197 分支的说明、只读核对与静态验证记录。
 - `ports/pd2454-66127/`：vivo 6.6.127 分支的说明、常量和 OTA 提取工具。
 - `third_party/`：第三方许可全文与参考材料。
 
@@ -203,16 +207,25 @@ export ANDROID_NDK_HOME=/path/to/ndk
 ./exploit/build-all.sh
 ```
 
-也可以单独构建某一档：
+也可以单独构建某一档（`build-all.sh` 会自动设置 NDK linker；手动构建时需自己指定）：
 
 ```bash
+export ANDROID_NDK_HOME=/path/to/ndk
+export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=\
+  "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android31-clang"
+export KPLANT_CC="$CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER"
 cd exploit/rust-kplant
 cargo build --release --target aarch64-linux-android \
-    --no-default-features --features k66118
+    --no-default-features --features k515197
 ```
 
-可用的 feature：`k61269`、`k61238`、`k61258`、`k61223`、`k66118`；
+可用的 feature：`k61269`、`k61238`、`k61258`、`k61223`、`k66118`、`k66127`、`k515197`；
 6.18.21 由 `rust-k61821` 单独构建。
+
+不想在手机上装 Rust/NDK 时，可以直接用 GitHub Actions：
+`.github/workflows/build-runners.yml` 在 Ubuntu 上编译全部 runner 并上传
+`shark-runners-arm64-v8a` artifact；`.github/workflows/build-debug-apk.yml`
+可手动触发构建 debug APK。
 
 通用 KO 和双 KMI loader 在
 [KSU-Universal](https://github.com/Yunnijian/KSU-Universal) 里构建，

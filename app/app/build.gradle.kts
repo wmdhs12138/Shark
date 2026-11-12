@@ -67,6 +67,7 @@ android {
             keepDebugSymbols.add("**/libk61238.so")
             keepDebugSymbols.add("**/libk66118.so")
             keepDebugSymbols.add("**/libk66127.so")
+            keepDebugSymbols.add("**/libk515197.so")
             keepDebugSymbols.add("**/libsusfs_guard_lkm.so")
             keepDebugSymbols.add("**/libsusfs_guard_lkm_612.so")
             keepDebugSymbols.add("**/libhybridmount.so")

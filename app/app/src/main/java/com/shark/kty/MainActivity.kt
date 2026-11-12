@@ -2498,6 +2498,7 @@ class MainActivity : ComponentActivity() {
                     ExploitKind.CVE61223 -> arrayOf("$nativeDir/libk61223.so", "run")
                     ExploitKind.CVE66118 -> arrayOf("$nativeDir/libk66118.so", "run")
                     ExploitKind.CVE66127 -> arrayOf("$nativeDir/libk66127.so", "run")
+                    ExploitKind.CVE515197 -> arrayOf("$nativeDir/libk515197.so", "run")
                     ExploitKind.UNSUPPORTED -> null
                 } ?: run {
                     withContext(Dispatchers.Main) {
@@ -2620,6 +2621,7 @@ class MainActivity : ComponentActivity() {
         CVE61223("CVE-2026-98260-vivo-6.12.23"),
         CVE66118("CVE-2026-98260-6.6.118"),
         CVE66127("CVE-2026-98260-vivo-6.6.127"),
+        CVE515197("CVE-2026-98260-iQOO-Neo9"),
         UNSUPPORTED("当前机型不支持")
     }
 
@@ -2633,8 +2635,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun isVivoV2505a(): Boolean =
-        (exploit == ExploitKind.CVE61223 || exploit == ExploitKind.CVE61258) &&
-            kernelVersion.contains("abogki")
+        exploit == ExploitKind.CVE515197 ||
+            ((exploit == ExploitKind.CVE61223 || exploit == ExploitKind.CVE61258) &&
+                kernelVersion.contains("abogki"))
 
     /** OriginOS 7 builds load the KSU LKM through the hooks_defend gate. */
     private fun isGateKernel(): Boolean =
@@ -2653,6 +2656,7 @@ class MainActivity : ComponentActivity() {
     private fun supportsSusfs(): Boolean =
         !isGateKernel() && exploit != ExploitKind.CVE66118 &&
             exploit != ExploitKind.CVE66127 &&
+            exploit != ExploitKind.CVE515197 &&
             exploit != ExploitKind.UNSUPPORTED
 
     private fun managerChoices(): List<ManagerKind> =
@@ -2678,6 +2682,7 @@ class MainActivity : ComponentActivity() {
             "6.6.118-android15-8-gc4127a25dcf3-ab15863337-4k" to ExploitKind.CVE66118,
             "6.6.127-android15-8-gd489d4ad2a70-abogki567717946-4k" to ExploitKind.CVE66127,
             "6.12.58-android16-6-g690108013dcc-abogki576129896-4k" to ExploitKind.CVE61258,
+            "5.15.197-g708015331567-dirty" to ExploitKind.CVE515197,
         )
     }
 }

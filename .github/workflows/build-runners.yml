@@ -1,0 +1,60 @@
+name: build-runners
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "exploit/**"
+      - ".github/workflows/build-runners.yml"
+  pull_request:
+    paths:
+      - "exploit/**"
+      - ".github/workflows/build-runners.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  runners:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Set up Android NDK
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          add-to-path: false
+
+      - name: Build per-kernel runners
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          chmod +x exploit/build-all.sh
+          ./exploit/build-all.sh
+
+      - name: Verify Neo9 runner
+        run: |
+          set -e
+          R=app/app/src/main/jniLibs/arm64-v8a/libk515197.so
+          test -s "$R"
+          readelf -l "$R" | grep -q '/system/bin/linker64'
+          readelf -d "$R" | grep -q 'libc.so'
+          file "$R"
+          ls -lh app/app/src/main/jniLibs/arm64-v8a/libk*.so
+
+      - name: Upload runners
+        uses: actions/upload-artifact@v4
+        with:
+          name: shark-runners-arm64-v8a
+          path: app/app/src/main/jniLibs/arm64-v8a/libk*.so
+          if-no-files-found: error
+          retention-days: 14
