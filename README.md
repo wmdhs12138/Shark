@@ -223,9 +223,9 @@ cargo build --release --target aarch64-linux-android \
 6.18.21 由 `rust-k61821` 单独构建。
 
 不想在手机上装 Rust/NDK 时，可以直接用 GitHub Actions：
-`.github/workflows/build-runners.yml` 在 Ubuntu 上编译全部 runner 并上传
-`shark-runners-arm64-v8a` artifact；`.github/workflows/build-debug-apk.yml`
-可手动触发构建 debug APK。
+`.github/workflows/build-runners.yml` 在 Ubuntu 上编译全部 runner，并继续构建
+debug APK，一次 run 同时上传 `shark-runners-arm64-v8a` 和 `shark-debug-apk`
+两个 artifact；`.github/workflows/build-debug-apk.yml` 也可单独手动触发 APK。
 
 通用 KO 和双 KMI loader 在
 [KSU-Universal](https://github.com/Yunnijian/KSU-Universal) 里构建，
