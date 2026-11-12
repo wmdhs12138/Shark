@@ -1,6 +1,6 @@
 # iQOO Neo9（PD2338）5.15.197 适配
 
-**状态：已加入 `libk515197` 入口；常量与本机只读 probe 已核对，完整 UAF/干净开机流程待在真机复测。**
+**状态：已加入 `libk515197` 入口；常量与本机只读 probe 已核对。5.15 fake-cred 顺序已按 Timer 修正，等待 CI 重编和干净开机复测。**
 
 ## 本机信息
 
@@ -60,10 +60,12 @@
 | security | `0x78` |
 | user / user_ns / ucounts / group_info | `0x80` / `0x88` / `0x90` / `0x98` |
 
-5.15 的 stale timer node 在 fake cred `+0x10` 处放 rb 写目标；这个 8 字节
-会同时覆盖 `sgid` 和 `euid`（6.x 布局对应的是 `suid`/`sgid`）。因此 5.15
-入口在安装 fake cred 后额外做了 `fake_uid`（`+0x4`）和 `fake_ids`（`+0x10`）
-两次零写，把 uid/gid、sgid/euid 一起归零后再唤醒子进程。
+5.15 的 stale timer node 在 fake cred `+0x10` 处放 rb 写目标。若把 fake cred
+放在 node 本身，`rb_erase` 的 rb_right 修复会写到 `node+0x8`，并让
+`sgid`/`euid` 变脏；因此 5.15 入口把 fake cred 放在 `node+0x18`，和 Timer
+的 `cred_off=node_off+0x18` 一致。这样不需要再做 `fake_uid` / `fake_ids`，
+而是在 fake cred 安装前先清 `thread_info.flags`、`seccomp.mode`、SELinux 和
+vivo `sys_exit` tracepoint，最后安装 fake cred，写完立即唤醒子进程。
 
 其他布局：
 
